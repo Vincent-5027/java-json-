@@ -1,0 +1,196 @@
+Jackson fasterxml和codehaus的区别：
+他们是Jackson的两大分支、也是两个版本的不同包名。Jackson从2.0开始改用新的包名fasterxml；1.x版本的包名是codehaus。除了包名不同，
+他们的Maven artifact id也不同。1.x版本现在只提供bug-fix，而2.x版本还在不断开发和发布中。如果是新项目，建议直接用2x，即fasterxml jackson。
+
+Jackson和fastjson简单用法及性能对比 http://blog.csdn.net/moyu_2012/article/details/49719321
+
+package main.java.jackson;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.codehaus.jackson.map.ObjectMapper;
+
+public class BeanToJson {
+     public static void main(String[] args) throws Exception {    
+      //将对象转换成json字符串
+      User user = new User();
+      user.setAge(10);
+      user.setUsername("jzx");
+      ObjectMapper objectMapper = new ObjectMapper();
+      String userJson = objectMapper.writeValueAsString(user);
+      System.out.println(userJson);
+      //打印：{"username":"jzx","age":10}
+
+      //将list集合对象转换成json字符串
+      User user1 = new User();
+      user1.setAge(11);
+      user1.setUsername("sss");
+      User user2 = new User();
+      user2.setAge(12);
+      user2.setUsername("hsj");
+      List<User> userList = new ArrayList<User>();
+      userList.add(user1);
+      userList.add(user2);
+      String userListJson = objectMapper.writeValueAsString(userList);
+      System.out.println(userListJson);
+      //打印结果：[{"username":"sss","age":11},{"username":"hsj","age":12}]
+
+      //将map集合转换成json字符串。
+      Map<String,User> userMap = new HashMap<String,User>();
+      userMap.put("user1", user1);
+      userMap.put("user2", user2);
+      String userMapJson  = objectMapper.writeValueAsString(userMap);
+      System.out.println(userMapJson);
+      //打印结果：{"user2":{"username":"hsj","age":12},"user1":{"username":"sss","age":11}}
+     }
+}
+
+
+package main.java.jackson;
+
+import java.util.List;
+
+public class ListBean {
+     List<User> userList;
+
+     public List<User> getUserList() {
+      return userList;
+     }
+
+     public void setUserList(List<User> userList) {
+      this.userList = userList;
+     }
+ }
+json字符串转换成java对象（反序列化）
+package main.java.jackson;
+
+import java.util.List;
+import java.util.Map;
+import org.codehaus.jackson.map.ObjectMapper;
+
+public class JsonToBeans {
+     public static void main(String[] args) throws Exception {
+          //将json字符串转换成java对象
+          String userJson = "{\"username\":\"jzx\",\"age\":10}";
+          ObjectMapper objectMapper = new ObjectMapper();
+          User user = objectMapper.readValue(userJson,User.class);
+          System.out.println(user+":"+user.getUsername()+","+ user.getAge());
+          //打印结果：com.Jtianlin.test.User@c2a132:jzx,10
+
+          //将json字符串数组转换成java对象list集合。直接转换成list集合较为复杂，本例通过一个过渡对象
+          //该对象里面存有一个list的java对象集合。通过转换成对象来实现集合对象的转换。
+          String userListJson = "{\"userList\":[{\"username\":\"sss\",\"age\":11},{\"username\":\"hsj\",\"age\":12}]}";
+          ListBean listBeans = objectMapper.readValue(userListJson, ListBean.class);
+          System.out.println(listBeans.getUserList());
+          //打印结果：[com.Jtianlin.test.User@1e0bc08, com.Jtianlin.test.User@158b649]
+
+          //将json字符串转换成map集合，可以通过键来取得值。
+          String mapJson = "{\"username\":\"hsj\",\"age\":12}";
+          Map userMap = objectMapper.readValue(mapJson, Map.class);
+          System.out.println(userMap+":" + userMap.get("username")+","+userMap.get("age") );
+          //打印结果：{username=hsj, age=12}:hsj,12
+
+          //将json字符串数组转换成Map的list集合。
+          String json ="[{\"username\":\"sss\",\"age\":11},{\"username\":\"hsj\",\"age\":12}]";
+          List<Map> list = objectMapper.readValue(json, List.class);  
+          System.out.println(list.get(0).get("username"));
+          //打印结果：sss
+     }
+}
+
+fastjson生成json字符串
+(JavaBean,List<JavaBean>,List<String>,List<Map<String,Object>)
+ String jsonStrng = JSON.toJSONString(object);
+ 
+ fastjson 解析json字符串为四种类型
+  1. JavaBean
+      Person person = JSON.parseObject(jsonString, Person.class);
+  2. List<JavaBean>
+      List<Person> listPerson =JSON.parseArray(jsonString, Person.class);
+  3. List<String>
+      List<String> listString = JSON.parseArray(jsonString, String.class);
+  4. List<Map<String,Object>>
+      List<Map<String, Object>> listMap = JSON.parseObject(jsonString, new TypeReference<List<Map<String,Object>>>(){});  
+      
+
+package main.java.fastjson;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import main.java.jackson.User;
+import com.alibaba.fastjson.JSON;
+
+public class BeanToJson {
+     public static void main(String[] args) throws Exception {    
+      //将对象转换成json字符串
+      User user = new User();
+      user.setAge(10);
+      user.setUsername("jzx");
+      String userJson = JSON.toJSONString(user);
+      System.out.println(userJson);
+      //打印：{"age":10,"username":"jzx"}
+
+      //将list集合对象转换成json字符串
+      User user1 = new User();
+      user1.setAge(11);
+      user1.setUsername("sss");
+      User user2 = new User();
+      user2.setAge(12);
+      user2.setUsername("hsj");
+      List<User> userList = new ArrayList<User>();
+      userList.add(user1);
+      userList.add(user2);
+      String userListJson = JSON.toJSONString(userList);
+      System.out.println(userListJson);
+      //打印结果：[{"age":11,"username":"sss"},{"age":12,"username":"hsj"}]
+
+      //将map集合转换成json字符串。
+      Map<String,User> userMap = new HashMap<String,User>();
+      userMap.put("user1", user1);
+      userMap.put("user2", user2);
+      String userMapJson  = JSON.toJSONString(userMap);
+      System.out.println(userMapJson);
+      //打印结果：{"user2":{"age":12,"username":"hsj"},"user1":{"age":11,"username":"sss"}}
+     }
+}
+
+package main.java.fastjson;
+
+import java.util.List;
+import java.util.Map;
+import main.java.jackson.ListBean;
+import main.java.jackson.User;
+import com.alibaba.fastjson.JSON;
+
+public class JsonToBeans {
+     public static void main(String[] args) throws Exception {
+          //将json字符串转换成java对象
+          String userJson = "{\"username\":\"jzx\",\"age\":10}";
+          User user = JSON.parseObject(userJson,User.class);
+          System.out.println(user+":"+user.getUsername()+","+ user.getAge());
+          //打印结果：main.java.jackson.User@1de06d7e:jzx,10
+
+          //将json字符串数组转换成java对象list集合。直接转换成list集合较为复杂，本例通过一个过渡对象
+          //该对象里面存有一个list的java对象集合。通过转换成对象来实现集合对象的转换。
+          String userListJson = "{\"userList\":[{\"username\":\"sss\",\"age\":11},{\"username\":\"hsj\",\"age\":12}]}";
+          ListBean listBeans =JSON.parseObject(userListJson, ListBean.class);
+          System.out.println(listBeans.getUserList());
+          //打印结果：[main.java.jackson.User@6273e11a, main.java.jackson.User@25bfa475]
+
+          //将json字符串转换成map集合，可以通过键来取得值。
+          String mapJson = "{\"username\":\"hsj\",\"age\":12}";
+          Map userMap = JSON.parseObject(mapJson, Map.class);
+          System.out.println(userMap+":" + userMap.get("username")+","+userMap.get("age") );
+          //打印结果：{username=hsj, age=12}:hsj,12
+
+          //将json字符串数组转换成Map的list集合。
+          String json ="[{\"username\":\"sss\",\"age\":11},{\"username\":\"hsj\",\"age\":12}]";
+          List<Map> list = JSON.parseObject(json, List.class); 
+          System.out.println(list.get(0).get("username"));
+          //打印结果：sss
+     }
+}
